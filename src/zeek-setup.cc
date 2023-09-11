@@ -63,6 +63,7 @@
 #ifdef HAVE_SPICY
 #include "zeek/spicy/manager.h"
 #endif
+#include "zeek/storage/Manager.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
@@ -176,6 +177,7 @@ zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
 #ifdef HAVE_SPICY
 zeek::spicy::Manager* zeek::spicy_mgr = nullptr;
 #endif
+zeek::storage::Manager* zeek::storage_mgr = nullptr;
 
 std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
@@ -402,6 +404,7 @@ static void terminate_zeek() {
 #ifdef HAVE_SPICY
     delete spicy_mgr;
 #endif
+    delete storage_mgr;
 
     // free the global scope
     pop_scope();
@@ -672,6 +675,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 #ifdef HAVE_SPICY
     spicy_mgr = new spicy::Manager(); // registers as plugin with the plugin manager
 #endif
+    storage_mgr = new storage::Manager();
 
     plugin_mgr->InitPreScript();
     file_mgr->InitPreScript();
@@ -812,6 +816,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         broker_mgr->InitPostScript();
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();
+        storage_mgr->InitPostScript();
 
         if ( supervisor_mgr )
             supervisor_mgr->InitPostScript();
