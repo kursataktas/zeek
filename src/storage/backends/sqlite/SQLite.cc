@@ -35,10 +35,11 @@ BoolResult SQLite::DoOpen(RecordValPtr config) {
     full_path = zeek::filesystem::path(path->ToStdString());
     table_name = config->GetField<StringVal>("table_name")->ToStdString();
 
-    if ( checkError(sqlite3_open_v2(full_path.c_str(), &db,
-                                    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL)) ) {
+    auto open_res = checkError(sqlite3_open_v2(full_path.c_str(), &db,
+                                               SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
+    if ( ! open_res.first ) {
         db = nullptr;
-        return {false, "Failed to open database connection"};
+        return {false, open_res.second};
     }
 
     std::string create = "create table if not exists " + table_name + " (";
@@ -47,11 +48,12 @@ BoolResult SQLite::DoOpen(RecordValPtr config) {
     char* errorMsg = nullptr;
     int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
     if ( res != SQLITE_OK ) {
-        Error(util::fmt("Error executing table creation statement: %s", errorMsg));
+        std::string err = util::fmt("Error executing table creation statement: %s", errorMsg);
+        Error(err.c_str());
         sqlite3_free(errorMsg);
         sqlite3_close(db);
         db = nullptr;
-        return {false, "Failed to initialize database table"};
+        return {false, err};
     }
 
     return {true, ""};
@@ -118,8 +120,9 @@ ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
 
     char* errorMsg = nullptr;
     sqlite3_stmt* st;
-    if ( checkError(sqlite3_prepare_v2(db, stmt.c_str(), static_cast<int>(stmt.size() + 1), &st, NULL)) )
-        return {nullptr, "Failed to prepare select statement"};
+    auto res = checkError(sqlite3_prepare_v2(db, stmt.c_str(), static_cast<int>(stmt.size() + 1), &st, NULL));
+    if ( ! res.first )
+        return {nullptr, util::fmt("Failed to prepare select statement: %s", res.second.c_str())};
 
     int errorcode = sqlite3_step(st);
     if ( errorcode == SQLITE_ROW ) {
@@ -135,8 +138,8 @@ ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
         }
     }
 
-    // TODO: return status from the sqlite call
-    return {nullptr, "Failed to find row for key"};
+
+    return {nullptr, util::fmt("Failed to find row for key: %s", sqlite3_errstr(errorcode))};
 }
 
 /**
@@ -162,13 +165,14 @@ BoolResult SQLite::DoErase(ValPtr key) {
 }
 
 // returns true in case of error
-bool SQLite::checkError(int code) {
+BoolResult SQLite::checkError(int code) {
     if ( code != SQLITE_OK && code != SQLITE_DONE ) {
-        Error(util::fmt("SQLite call failed: %s", sqlite3_errmsg(db)));
-        return true;
+        std::string msg = util::fmt("SQLite call failed: %s", sqlite3_errmsg(db));
+        Error(msg.c_str());
+        return {true, msg};
     }
 
-    return false;
+    return {false, ""};
 }
 
 } // namespace zeek::storage::backends::sqlite

@@ -52,7 +52,7 @@ public:
     BoolResult DoErase(ValPtr key) override;
 
 private:
-    bool checkError(int code);
+    BoolResult checkError(int code);
 
     sqlite3* db = nullptr;
     std::string full_path;
