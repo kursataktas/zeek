@@ -123,4 +123,10 @@ public:
     BackendPtr backend;
 };
 
+// Result from calls to open a new backend. The pointer value will be non-null
+// if the open operation succeeded, and the string value is an error message if
+// the operation failed. This isn't used by the backends themselves, but by the
+// Manager to return error messages to callers if necessary (notably scripts).
+using BackendResult = std::pair<BackendPtr, std::string>;
+
 } // namespace zeek::storage

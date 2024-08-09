@@ -8,40 +8,29 @@ Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Ba
 
 void Manager::InitPostScript() { detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend"); }
 
-/**
- * Opens a new storage backend.
- *
- * @param type The tag for the type of backend being opened.
- * @param configuration A record val representing the configuration for this
- * type of backend.
- * @return A pointer to a backend instance.
- */
-BackendPtr Manager::OpenBackend(const Tag& type, RecordValPtr config) {
+BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr config) {
     Component* c = Lookup(type);
     if ( ! c ) {
-        reporter->Warning("Request to open unknown backend (%d:%d)", type.Type(), type.Subtype());
-        return nullptr;
+        return {nullptr, util::fmt("Request to open unknown backend (%d:%d)", type.Type(), type.Subtype())};
     }
 
     if ( ! c->Factory() ) {
-        reporter->Warning("Failed to open backend %s\n", GetComponentName(type).c_str());
-        return nullptr;
+        return {nullptr, util::fmt("Factory invalid for backend %s", GetComponentName(type).c_str())};
     }
 
     Backend* b = c->Factory()();
 
     if ( ! b ) {
-        reporter->InternalWarning("Failed to instantiate backend %s\n", GetComponentName(type).c_str());
-        return nullptr;
+        return {nullptr, util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str())};
     }
 
     if ( auto res = b->Open(std::move(config)); ! res.first ) {
-        reporter->InternalWarning("Failed to open backend %s\n", GetComponentName(type).c_str());
         delete b;
-        return nullptr;
+        return {nullptr,
+                util::fmt("Failed to open backend %s: %s", GetComponentName(type).c_str(), res.second.c_str())};
     }
 
-    return IntrusivePtr<Backend>{AdoptRef{}, b};
+    return {IntrusivePtr<Backend>{AdoptRef{}, b}, ""};
 }
 
 void Manager::CloseBackend(BackendPtr backend) { backend->Done(); }

@@ -18,7 +18,12 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any%): opaque
 
     auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
     auto b = storage_mgr->OpenBackend(tag, config_val);
-    return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b);
+
+    if ( ! b.first ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to open backend: %s", b.second.c_str()));
+		return zeek::val_mgr->Bool(false);
+    }
+    return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b.first);
 	%}
 
 function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool

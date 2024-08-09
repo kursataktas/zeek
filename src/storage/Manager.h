@@ -25,15 +25,10 @@ public:
      * @param type The tag for the type of backend being opened.
      * @param config A record val representing the configuration for this
      * type of backend.
-     * @return A pointer to a backend instance.
+     * @return A pair containing a pointer to a backend and a string for
+     * returning error messages if needed.
      */
-    BackendPtr OpenBackend(const Tag& type, RecordValPtr configuration);
-
-    // TODO
-    // - Does the manager really need to do anything except provide a method for opening
-    //   new backends? The backends have store/retrieve methods of their own, so scripts/BIFs
-    //   can just call those directly if they have the handle. Users of the backends (tables,
-    //   etc) can close the backends themselves instead of asking the manager to.
+    BackendResult OpenBackend(const Tag& type, RecordValPtr configuration);
 
     /**
      * Closes a storage backend.
