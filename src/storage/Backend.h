@@ -56,10 +56,12 @@ public:
      * @param key the key for the pair
      * @param value the value for the pair
      * @param overwrite whether an existing value for a key should be overwritten.
+     * @param expiration_time the time when this entry should be automatically
+     * removed. Set to zero to disable expiration.
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true);
+    ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0);
 
     /**
      * Retrieve a value from the backend for a provided key.
@@ -95,7 +97,7 @@ protected:
     /**
      * The workhorse method for Put().
      */
-    virtual ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) = 0;
+    virtual ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0) = 0;
 
     /**
      * The workhorse method for Get().

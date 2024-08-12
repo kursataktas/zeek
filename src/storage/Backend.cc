@@ -8,12 +8,12 @@ zeek::OpaqueTypePtr detail::backend_opaque;
 
 ErrorResult Backend::Open(RecordValPtr config) { return DoOpen(std::move(config)); }
 
-ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite) {
+ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
     // just calls the backend itself directly.
-    return DoPut(std::move(key), std::move(value), overwrite);
+    return DoPut(std::move(key), std::move(value), overwrite, expiration_time);
 }
 
 ValResult Backend::Get(ValPtr key, TypePtr value_type) {

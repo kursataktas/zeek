@@ -38,8 +38,12 @@ export {
 	## overwrite: A flag indicating whether this value should overwrite an existing entry
 	## for the key.
 	##
+	## expire_time: An interval of time until the entry is automatically
+	## removed from the backend.
+	##
 	## Returns: A boolean indicating success or failure of the operation.
-	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool;
+	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any,
+	                     overwrite: bool, expire_time: interval): bool;
 
 	## Gets an entry from the backend.
 	##
@@ -73,9 +77,9 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 	return Storage::__close_backend(backend);
 }
 
-function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool
+function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool, expire_time: interval): bool
 {
-	return Storage::__put(backend, key, value, overwrite);
+	return Storage::__put(backend, key, value, overwrite, expire_time);
 }
 
 function get(backend: opaque of Storage::BackendHandle, key: any, val_type: any): any

@@ -39,7 +39,7 @@ public:
     /**
      * The workhorse method for Retrieve().
      */
-    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) override;
+    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0) override;
 
     /**
      * The workhorse method for Get().

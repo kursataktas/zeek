@@ -74,7 +74,7 @@ void SQLite::Done() {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite) {
+ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     if ( ! db )
         return "Database was not open";
 
