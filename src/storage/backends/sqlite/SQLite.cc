@@ -16,12 +16,12 @@ storage::Backend* SQLite::Instantiate() { return new SQLite(); }
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-BoolResult SQLite::DoOpen(RecordValPtr config) {
+ErrorResult SQLite::DoOpen(RecordValPtr config) {
     if ( sqlite3_threadsafe() == 0 ) {
-        BoolResult res = {false,
-                          "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
-                          "SQLite. Aborting"};
-        Error(res.second.c_str());
+        std::string res =
+            "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
+            "SQLite. Aborting";
+        Error(res.c_str());
         return res;
     }
 
@@ -37,9 +37,9 @@ BoolResult SQLite::DoOpen(RecordValPtr config) {
 
     auto open_res = checkError(sqlite3_open_v2(full_path.c_str(), &db,
                                                SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
-    if ( ! open_res.first ) {
+    if ( ! open_res.has_value() ) {
         db = nullptr;
-        return {false, open_res.second};
+        return open_res;
     }
 
     std::string create = "create table if not exists " + table_name + " (";
@@ -53,10 +53,10 @@ BoolResult SQLite::DoOpen(RecordValPtr config) {
         sqlite3_free(errorMsg);
         sqlite3_close(db);
         db = nullptr;
-        return {false, err};
+        return err;
     }
 
-    return {true, ""};
+    return std::nullopt;
 }
 
 /**
@@ -74,9 +74,9 @@ void SQLite::Done() {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-BoolResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite) {
+ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite) {
     if ( ! db )
-        return {false, "Database was not open"};
+        return "Database was not open";
 
     auto json_key = key->ToJSON();
     auto json_value = value->ToJSON();
@@ -99,10 +99,10 @@ BoolResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite) {
     char* errorMsg = nullptr;
     int res = sqlite3_exec(db, stmt.c_str(), NULL, NULL, &errorMsg);
     if ( res != SQLITE_OK ) {
-        return {false, errorMsg};
+        return errorMsg;
     }
 
-    return {true, ""};
+    return std::nullopt;
 }
 
 /**
@@ -110,7 +110,7 @@ BoolResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite) {
  */
 ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
     if ( ! db )
-        return {nullptr, "Database was not open"};
+        return nonstd::unexpected<std::string>("Database was not open");
 
     auto json_key = key->ToJSON();
 
@@ -121,8 +121,9 @@ ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
     char* errorMsg = nullptr;
     sqlite3_stmt* st;
     auto res = checkError(sqlite3_prepare_v2(db, stmt.c_str(), static_cast<int>(stmt.size() + 1), &st, NULL));
-    if ( ! res.first )
-        return {nullptr, util::fmt("Failed to prepare select statement: %s", res.second.c_str())};
+    if ( res.has_value() )
+        return nonstd::unexpected<std::string>(
+            util::fmt("Failed to prepare select statement: %s", res.value().c_str()));
 
     int errorcode = sqlite3_step(st);
     if ( errorcode == SQLITE_ROW ) {
@@ -131,23 +132,22 @@ ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
         auto val = zeek::detail::ValFromJSON(text, value_type, Func::nil);
         if ( std::holds_alternative<ValPtr>(val) ) {
             ValPtr val_v = std::get<ValPtr>(val);
-            return {val_v, ""};
+            return val_v;
         }
         else {
-            return {nullptr, std::get<std::string>(val)};
+            return nonstd::unexpected<std::string>(std::get<std::string>(val));
         }
     }
 
-
-    return {nullptr, util::fmt("Failed to find row for key: %s", sqlite3_errstr(errorcode))};
+    return nonstd::unexpected<std::string>(util::fmt("Failed to find row for key: %s", sqlite3_errstr(errorcode)));
 }
 
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-BoolResult SQLite::DoErase(ValPtr key) {
+ErrorResult SQLite::DoErase(ValPtr key) {
     if ( ! db )
-        return {false, "Database was not open"};
+        return "Database was not open";
 
     auto json_key = key->ToJSON();
 
@@ -158,21 +158,21 @@ BoolResult SQLite::DoErase(ValPtr key) {
     char* errorMsg = nullptr;
     int res = sqlite3_exec(db, stmt.c_str(), NULL, NULL, &errorMsg);
     if ( res != SQLITE_OK ) {
-        return {false, errorMsg};
+        return errorMsg;
     }
 
-    return {true, ""};
+    return std::nullopt;
 }
 
 // returns true in case of error
-BoolResult SQLite::checkError(int code) {
+ErrorResult SQLite::checkError(int code) {
     if ( code != SQLITE_OK && code != SQLITE_DONE ) {
         std::string msg = util::fmt("SQLite call failed: %s", sqlite3_errmsg(db));
         Error(msg.c_str());
-        return {true, msg};
+        return msg;
     }
 
-    return {false, ""};
+    return std::nullopt;
 }
 
 } // namespace zeek::storage::backends::sqlite

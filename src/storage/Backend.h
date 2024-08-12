@@ -5,17 +5,18 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
 
+#include "nonstd/expected.hpp"
+
 namespace zeek::storage {
 
-// Result from storage operations that return a simple pass/fail. The bool value
-// is whether the operation succeeded, and the string value is an error message
-// if the operation failed.
-using BoolResult = std::pair<bool, std::string>;
+// Result from storage operations that may return an error message. If the
+// optional value is unset, the operation succeeded.
+using ErrorResult = std::optional<std::string>;
 
 // Result from storage operations that return Vals. The ValPtr is an
 // IntrusivePtr to some result, and can be null if the operation failed. The
 // string value will store an error message if the result is null.
-using ValResult = std::pair<ValPtr, std::string>;
+using ValResult = nonstd::expected<ValPtr, std::string>;
 
 namespace detail {
 extern OpaqueTypePtr backend_opaque;
@@ -32,7 +33,7 @@ public:
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    BoolResult Open(RecordValPtr config);
+    ErrorResult Open(RecordValPtr config);
 
     /**
      * Finalizes the backend when it's being closed. Can be overridden by
@@ -58,7 +59,7 @@ public:
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    BoolResult Put(ValPtr key, ValPtr value, bool overwrite = true);
+    ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true);
 
     /**
      * Retrieve a value from the backend for a provided key.
@@ -78,7 +79,7 @@ public:
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    BoolResult Erase(ValPtr key);
+    ErrorResult Erase(ValPtr key);
 
     /**
      * Returns whether the backend is opened.
@@ -89,12 +90,12 @@ protected:
     /**
      * The workhorse method for Open().
      */
-    virtual BoolResult DoOpen(RecordValPtr config) = 0;
+    virtual ErrorResult DoOpen(RecordValPtr config) = 0;
 
     /**
      * The workhorse method for Put().
      */
-    virtual BoolResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) = 0;
+    virtual ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) = 0;
 
     /**
      * The workhorse method for Get().
@@ -104,7 +105,7 @@ protected:
     /**
      * The workhorse method for Erase().
      */
-    virtual BoolResult DoErase(ValPtr key) = 0;
+    virtual ErrorResult DoErase(ValPtr key) = 0;
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;
@@ -123,10 +124,10 @@ public:
     BackendPtr backend;
 };
 
-// Result from calls to open a new backend. The pointer value will be non-null
-// if the open operation succeeded, and the string value is an error message if
-// the operation failed. This isn't used by the backends themselves, but by the
-// Manager to return error messages to callers if necessary (notably scripts).
-using BackendResult = std::pair<BackendPtr, std::string>;
+// Result from calls to open a new backend. The value will be set if the open
+// operation succeeded, and the string value is an error message if the
+// operation failed. This isn't used by the backends themselves, but by the
+// Manager to return error messages to callers if necessary (notably BIFs).
+using BackendResult = nonstd::expected<BackendPtr, std::string>;
 
 } // namespace zeek::storage

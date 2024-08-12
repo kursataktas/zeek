@@ -24,7 +24,7 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    BoolResult DoOpen(RecordValPtr config) override;
+    ErrorResult DoOpen(RecordValPtr config) override;
 
     /**
      * Finalizes the backend when it's being closed.
@@ -39,7 +39,7 @@ public:
     /**
      * The workhorse method for Retrieve().
      */
-    BoolResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) override;
+    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) override;
 
     /**
      * The workhorse method for Get().
@@ -49,10 +49,10 @@ public:
     /**
      * The workhorse method for Erase().
      */
-    BoolResult DoErase(ValPtr key) override;
+    ErrorResult DoErase(ValPtr key) override;
 
 private:
-    BoolResult checkError(int code);
+    ErrorResult checkError(int code);
 
     sqlite3* db = nullptr;
     std::string full_path;

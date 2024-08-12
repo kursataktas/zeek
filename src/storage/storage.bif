@@ -19,11 +19,11 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any%): opaque
     auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
     auto b = storage_mgr->OpenBackend(tag, config_val);
 
-    if ( ! b.first ) {
-		zeek::emit_builtin_error(zeek::util::fmt("Failed to open backend: %s", b.second.c_str()));
+    if ( ! b.has_value() ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to open backend: %s", b.error().c_str()));
 		return zeek::val_mgr->Bool(false);
     }
-    return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b.first);
+    return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b.value());
 	%}
 
 function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool
@@ -49,12 +49,12 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
 	auto result = b->backend->Put(key_v, val_v, overwrite);
-	if ( ! result.first ) {
-		zeek::emit_builtin_error(zeek::util::fmt("Failed to store data: %s", result.second.c_str()));
+	if ( result.has_value() ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to store data: %s", result.value().c_str()));
 		return zeek::val_mgr->Bool(false);
 	}
 
-    return zeek::val_mgr->Bool(result.first);
+    return zeek::val_mgr->Bool(true);
 	%}
 
 function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, val_type: any%): any
@@ -68,12 +68,12 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, va
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
     auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto result = b->backend->Get(key_v, vt);
-	if ( ! result.first ) {
-		zeek::emit_builtin_error(zeek::util::fmt("Failed to retrieve data: %s", result.second.c_str()));
-        return nullptr;
+	if ( ! result.has_value() ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to retrieve data: %s", result.error().c_str()));
+		return zeek::val_mgr->Bool(false);
     }
 
-    return result.first;
+    return result.value();
 	%}
 
 function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%): bool
@@ -86,10 +86,10 @@ function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%)
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto result = b->backend->Erase(key_v);
-	if ( ! result.first ) {
-		zeek::emit_builtin_error(zeek::util::fmt("Failed to erase data for key: %s", result.second.c_str()));
+	if ( result.has_value() ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to erase data for key: %s", result.value().c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
-    return zeek::val_mgr->Bool(result.first);
+    return zeek::val_mgr->Bool(true);
     %}
