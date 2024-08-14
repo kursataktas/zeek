@@ -47,6 +47,8 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 		return zeek::val_mgr->Bool(false);
 	}
 
+    // TODO: add support for when statements (see broker/store.bif)
+
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
 	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time);
@@ -66,6 +68,8 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, va
 		return zeek::val_mgr->Bool(false);
 	}
 
+    // TODO: add support for when statements (see broker/store.bif)
+
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
     auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto result = b->backend->Get(key_v, vt);
@@ -84,6 +88,8 @@ function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%)
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
 	}
+
+    // TODO: add support for when statements (see broker/store.bif)
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto result = b->backend->Erase(key_v);

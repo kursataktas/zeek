@@ -33,9 +33,15 @@ BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr config) {
             util::fmt("Failed to open backend %s: %s", GetComponentName(type).c_str(), res.value().c_str()));
     }
 
+    // TODO: post storage_connection_established event
+
     return IntrusivePtr<Backend>{AdoptRef{}, b};
 }
 
-void Manager::CloseBackend(BackendPtr backend) { backend->Done(); }
+void Manager::CloseBackend(BackendPtr backend) {
+    backend->Done();
+
+    // TODO: post storage_connection_lost event
+}
 
 } // namespace zeek::storage
