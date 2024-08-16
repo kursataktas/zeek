@@ -35,10 +35,18 @@ BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr config) {
 
     // TODO: post storage_connection_established event
 
-    return IntrusivePtr<Backend>{AdoptRef{}, b};
+    BackendPtr bp = IntrusivePtr<Backend>{AdoptRef{}, b};
+    backends.push_back(bp);
+
+    return bp;
 }
 
 void Manager::CloseBackend(BackendPtr backend) {
+    auto it = std::find(backends.begin(), backends.end(), backend);
+    if ( it == backends.end() )
+        return;
+
+    backends.erase(it);
     backend->Done();
 
     // TODO: post storage_connection_lost event

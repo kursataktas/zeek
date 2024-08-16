@@ -9,6 +9,8 @@
 
 namespace zeek::storage {
 
+class Manager;
+
 // Result from storage operations that may return an error message. If the
 // optional value is unset, the operation succeeded.
 using ErrorResult = std::optional<std::string>;
@@ -25,21 +27,6 @@ extern OpaqueTypePtr backend_opaque;
 class Backend : public zeek::Obj {
 public:
     Backend() = default;
-
-    /**
-     * Called by the manager system to open the backend.
-     *
-     * @param config A record type storing configuration options for the backend.
-     * @return A result pair containing a bool with the success state, and a
-     * possible error string if the operation failed.
-     */
-    ErrorResult Open(RecordValPtr config);
-
-    /**
-     * Finalizes the backend when it's being closed. Can be overridden by
-     * derived classes.
-     */
-    virtual void Done() {}
 
     /**
      * Returns a descriptive tag representing the source for debugging.
@@ -89,6 +76,23 @@ public:
     virtual bool IsOpen() = 0;
 
 protected:
+    friend class storage::Manager;
+
+    /**
+     * Called by the manager system to open the backend.
+     *
+     * @param config A record type storing configuration options for the backend.
+     * @return A result pair containing a bool with the success state, and a
+     * possible error string if the operation failed.
+     */
+    ErrorResult Open(RecordValPtr config);
+
+    /**
+     * Finalizes the backend when it's being closed. Can be overridden by
+     * derived classes.
+     */
+    virtual void Done() {}
+
     /**
      * The workhorse method for Open().
      */

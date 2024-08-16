@@ -34,7 +34,8 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 		return zeek::val_mgr->Bool(false);
 	}
 
-	b->backend->Done();
+	storage_mgr->CloseBackend(b->backend);
+
 	return zeek::val_mgr->Bool(true);
 	%}
 
