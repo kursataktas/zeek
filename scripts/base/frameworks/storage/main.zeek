@@ -11,13 +11,13 @@ export {
 		table_name: string;
 	};
 
-	## Opens a new backend connection.
+	## Opens a new backend connection based on a configuration object.
 	##
-	## btype: A tag specifying which backend type to open.
+	## btype: A tag indicating what type of backend should be opened.
 	##
-	## config: A configuration record for the backend.
+	## config: A record containing the configuration for the connection.
 	##
-	## Returns: A handle to the new backend connection, or null if the connection failed.
+	## Returns: A handle to the new backend connection.
 	global open_backend: function(btype: Storage::Backend, config: any): opaque of Storage::BackendHandle;
 
 	## Closes an existing backend connection.
@@ -43,7 +43,7 @@ export {
 	##
 	## Returns: A boolean indicating success or failure of the operation.
 	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any,
-	                     overwrite: bool, expire_time: interval): bool;
+	                     overwrite: bool, expire_time: interval &default=0sec): bool;
 
 	## Gets an entry from the backend.
 	##

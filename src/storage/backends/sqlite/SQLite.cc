@@ -207,6 +207,19 @@ ErrorResult SQLite::DoErase(ValPtr key) {
     return std::nullopt;
 }
 
+void SQLite::Expire() {
+    auto stmt = prepared_stmts["expire"];
+
+    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, util::current_time())); res.has_value() ) {
+        sqlite3_reset(stmt);
+        // TODO: do something with the error here?
+    }
+
+    if ( auto res = checkError(sqlite3_step(stmt)); res.has_value() ) {
+        // TODO: do something with the error here?
+    }
+}
+
 // returns true in case of error
 ErrorResult SQLite::checkError(int code) {
     if ( code != SQLITE_OK && code != SQLITE_DONE ) {

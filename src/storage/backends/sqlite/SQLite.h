@@ -51,7 +51,7 @@ public:
      */
     ErrorResult DoErase(ValPtr key) override;
 
-    // TODO: add support for checking for expired data
+    void Expire() override;
 
 private:
     ErrorResult checkError(int code);

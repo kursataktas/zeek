@@ -112,6 +112,12 @@ protected:
      * The workhorse method for Erase().
      */
     virtual ErrorResult DoErase(ValPtr key) = 0;
+
+    /**
+     * Removes any entries in the backend that have expired. Can be overridden by
+     * derived classes.
+     */
+    virtual void Expire() {}
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;

@@ -2,11 +2,26 @@
 
 #pragma once
 
+#include <mutex>
+
+#include "zeek/Timer.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/storage/Backend.h"
 #include "zeek/storage/Component.h"
 
 namespace zeek::storage {
+
+namespace detail {
+
+class ExpireTimer final : public zeek::detail::Timer {
+public:
+    ExpireTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_STORAGE_EXPIRE) {}
+    ~ExpireTimer() override {}
+
+    void Dispatch(double t, bool is_expire) override;
+};
+
+} // namespace detail
 
 class Manager final : public plugin::ComponentManager<Component> {
 public:
@@ -34,6 +49,15 @@ public:
      * Closes a storage backend.
      */
     void CloseBackend(BackendPtr backend);
+
+protected:
+    friend class storage::detail::ExpireTimer;
+    void Expire();
+    void StartExpireTimer();
+
+private:
+    std::vector<BackendPtr> backends;
+    std::mutex backends_mtx;
 
     // TODO:
     // - Hooks for storage-backed tables?
