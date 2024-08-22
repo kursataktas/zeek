@@ -7,6 +7,10 @@
 
 #include "nonstd/expected.hpp"
 
+namespace zeek::detail::trigger {
+class Trigger;
+}
+
 namespace zeek::storage {
 
 class Manager;
@@ -20,9 +24,41 @@ using ErrorResult = std::optional<std::string>;
 // string value will store an error message if the result is null.
 using ValResult = nonstd::expected<ValPtr, std::string>;
 
+class ErrorResultCallback {
+public:
+    ErrorResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
+    ~ErrorResultCallback();
+    void Complete(const ErrorResult& res);
+    void Timeout();
+
+private:
+    zeek::detail::trigger::Trigger* trigger;
+    const void* assoc;
+};
+
+class ValResultCallback {
+public:
+    ValResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
+    ~ValResultCallback();
+    void Complete(const ValResult& res);
+    void Timeout();
+
+private:
+    zeek::detail::trigger::Trigger* trigger;
+    const void* assoc;
+};
+
 class Backend : public zeek::Obj {
 public:
-    Backend() = default;
+    /**
+     * Constructor
+     *
+     * @param native_async Denotes whether this backend can handle async request
+     * natively.  If set to false, the Put/Get/Erase methods will call the
+     * callback after their corresponding Do methods return. If set to true, the
+     * backend needs to call the callback itself.
+     */
+    Backend(bool native_async) : native_async(native_async) {}
 
     /**
      * Returns a descriptive tag representing the source for debugging.
@@ -44,7 +80,8 @@ public:
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0);
+    ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                    ErrorResultCallback* cb = nullptr);
 
     /**
      * Retrieve a value from the backend for a provided key.
@@ -56,15 +93,16 @@ public:
      * nullptr retrieval failed, and a string with the error message if the
      * operation failed.
      */
-    ValResult Get(ValPtr key, TypePtr value_type);
+    ValResult Get(ValPtr key, TypePtr value_type, ValResultCallback* cb = nullptr);
 
     /**
      * Erases the value for a key from the backend.
      *
+     * @param key the key to erase
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    ErrorResult Erase(ValPtr key);
+    ErrorResult Erase(ValPtr key, ErrorResultCallback* cb = nullptr);
 
     /**
      * Returns whether the backend is opened.
@@ -97,23 +135,27 @@ protected:
     /**
      * The workhorse method for Put().
      */
-    virtual ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0) = 0;
+    virtual ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                              ErrorResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Get().
      */
-    virtual ValResult DoGet(ValPtr key, TypePtr value_type) = 0;
+    virtual ValResult DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Erase().
      */
-    virtual ErrorResult DoErase(ValPtr key) = 0;
+    virtual ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) = 0;
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
      * derived classes.
      */
     virtual void Expire() {}
+
+private:
+    bool native_async = false;
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;

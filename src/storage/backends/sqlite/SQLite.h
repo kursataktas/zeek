@@ -9,7 +9,7 @@ namespace zeek::storage::backends::sqlite {
 
 class SQLite : public Backend {
 public:
-    SQLite() = default;
+    SQLite() : Backend(false) {}
     ~SQLite() override = default;
 
     static Backend* Instantiate();
@@ -39,17 +39,18 @@ public:
     /**
      * The workhorse method for Retrieve().
      */
-    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0) override;
+    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                      ErrorResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Get().
      */
-    ValResult DoGet(ValPtr key, TypePtr value_type) override;
+    ValResult DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Erase().
      */
-    ErrorResult DoErase(ValPtr key) override;
+    ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
 
     void Expire() override;
 

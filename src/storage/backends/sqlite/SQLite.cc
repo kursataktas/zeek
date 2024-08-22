@@ -128,7 +128,7 @@ void SQLite::Done() {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
+ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {
     if ( ! db )
         return "Database was not open";
 
@@ -180,7 +180,7 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
+ValResult SQLite::DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb) {
     if ( ! db )
         return nonstd::unexpected<std::string>("Database was not open");
 
@@ -215,7 +215,7 @@ ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-ErrorResult SQLite::DoErase(ValPtr key) {
+ErrorResult SQLite::DoErase(ValPtr key, ErrorResultCallback* cb) {
     if ( ! db )
         return "Database was not open";
 

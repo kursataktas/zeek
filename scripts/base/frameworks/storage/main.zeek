@@ -56,7 +56,8 @@ export {
 	##
 	## Returns: A boolean indicating success or failure of the operation.
 	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any,
-	                     overwrite: bool, expire_time: interval &default=0sec): bool;
+	                     overwrite: bool, expire_time: interval &default=0sec,
+			     async_mode: bool &default=T): bool;
 
 	## Gets an entry from the backend.
 	##
@@ -68,7 +69,8 @@ export {
 	##
 	## Returns: A boolean indicating success or failure of the
 	## operation. Type conversion failures for the value will return false.
-	global get: function(backend: opaque of Storage::BackendHandle, key: any, val_type: any): any;
+	global get: function(backend: opaque of Storage::BackendHandle, key: any, val_type: any,
+			     async_call: bool &default=T): any;
 
 	## Erases an entry from the backend.
 	##
@@ -77,7 +79,8 @@ export {
 	## key: The key to erase.
 	##
 	## Returns: A boolean indicating success or failure of the operation.
-	global erase: function(backend: opaque of Storage::BackendHandle, key: any): bool;
+	global erase: function(backend: opaque of Storage::BackendHandle, key: any,
+			       async_mode: bool &default=T): bool;
 }
 
 function open_backend(btype: Storage::Backend, config: any): opaque of Storage::BackendHandle
@@ -90,17 +93,18 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 	return Storage::__close_backend(backend);
 }
 
-function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool, expire_time: interval): bool
+function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool,
+             expire_time: interval &default=0sec, async_mode: bool &default=T): bool
 {
-	return Storage::__put(backend, key, value, overwrite, expire_time);
+	return Storage::__put(backend, key, value, overwrite, expire_time, async_mode);
 }
 
-function get(backend: opaque of Storage::BackendHandle, key: any, val_type: any): any
+function get(backend: opaque of Storage::BackendHandle, key: any, val_type: any, async_call: bool &default=T): any
 {
-	return Storage::__get(backend, key, val_type);
+	return Storage::__get(backend, key, val_type, async_call);
 }
 
-function erase(backend: opaque of Storage::BackendHandle, key: any): bool
+function erase(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): bool
 {
-	return Storage::__erase(backend, key);
+	return Storage::__erase(backend, key, async_mode);
 }
