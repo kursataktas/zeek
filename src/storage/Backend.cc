@@ -2,9 +2,10 @@
 
 #include "Backend.h"
 
-namespace zeek::storage {
+#include "zeek/Trigger.h"
+#include "zeek/broker/Data.h"
 
-zeek::OpaqueTypePtr detail::backend_opaque;
+namespace zeek::storage {
 
 ErrorResult Backend::Open(RecordValPtr config) { return DoOpen(std::move(config)); }
 
@@ -24,6 +25,19 @@ ValResult Backend::Get(ValPtr key, TypePtr value_type) {
 ErrorResult Backend::Erase(ValPtr key) {
     // See the note in Put().
     return DoErase(std::move(key));
+}
+
+zeek::OpaqueTypePtr detail::backend_opaque;
+IMPLEMENT_OPAQUE_VALUE(detail::BackendHandleVal)
+
+std::optional<BrokerData> detail::BackendHandleVal::DoSerializeData() const {
+    // Cannot serialize.
+    return std::nullopt;
+}
+
+bool detail::BackendHandleVal::DoUnserializeData(BrokerDataView) {
+    // Cannot unserialize.
+    return false;
 }
 
 } // namespace zeek::storage

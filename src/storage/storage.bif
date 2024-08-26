@@ -23,12 +23,12 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any%): opaque
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to open backend: %s", b.error().c_str()));
 		return zeek::val_mgr->Bool(false);
     }
-    return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b.value());
+    return zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
 	%}
 
 function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool
 	%{
-	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
@@ -42,7 +42,7 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
                          overwrite: bool, expire_time: interval%): bool
 	%{
-	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
@@ -63,7 +63,7 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 
 function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, val_type: any%): any
 	%{
-	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
@@ -84,7 +84,7 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, va
 
 function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%): bool
     %{
-	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);

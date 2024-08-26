@@ -20,10 +20,6 @@ using ErrorResult = std::optional<std::string>;
 // string value will store an error message if the result is null.
 using ValResult = nonstd::expected<ValPtr, std::string>;
 
-namespace detail {
-extern OpaqueTypePtr backend_opaque;
-}
-
 class Backend : public zeek::Obj {
 public:
     Backend() = default;
@@ -122,24 +118,32 @@ protected:
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;
 
-class BackendHandleVal : public OpaqueVal {
-public:
-    BackendHandleVal() : OpaqueVal(detail::backend_opaque) {}
-    BackendHandleVal(BackendPtr backend) : OpaqueVal(detail::backend_opaque), backend(std::move(backend)) {}
-
-    ~BackendHandleVal() override = default;
-
-    void ValDescribe(ODesc* d) const override {}
-
-    const char* OpaqueName() const override { return "BackendHandleVal"; }
-
-    BackendPtr backend;
-};
-
 // Result from calls to open a new backend. The value will be set if the open
 // operation succeeded, and the string value is an error message if the
 // operation failed. This isn't used by the backends themselves, but by the
 // Manager to return error messages to callers if necessary (notably BIFs).
 using BackendResult = nonstd::expected<BackendPtr, std::string>;
+
+namespace detail {
+
+extern OpaqueTypePtr backend_opaque;
+
+class BackendHandleVal : public OpaqueVal {
+public:
+    BackendHandleVal() : OpaqueVal(detail::backend_opaque) {}
+    BackendHandleVal(BackendPtr backend) : OpaqueVal(detail::backend_opaque), backend(std::move(backend)) {}
+    ~BackendHandleVal() override = default;
+
+    void ValDescribe(ODesc* d) const override {}
+
+    BackendPtr backend;
+
+protected:
+    IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
+
+    DECLARE_OPAQUE_VALUE_DATA(BackendHandleVal)
+};
+
+} // namespace detail
 
 } // namespace zeek::storage
