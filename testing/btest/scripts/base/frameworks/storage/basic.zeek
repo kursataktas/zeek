@@ -21,12 +21,12 @@ event zeek_init() {
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	local b = Storage::open_backend(Storage::SQLITE, opts);
+	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
 	when [b, key, value] ( local res = Storage::put(b, key, value, F) ) {
 		print "put result", res;
 
-		when [b, key, value] ( local res2 = Storage::get(b, key, str) ) {
+		when [b, key, value] ( local res2 = Storage::get(b, key) ) {
 			print "get result", res2;
 			print "get result same as inserted", value == (res2 as string);
 

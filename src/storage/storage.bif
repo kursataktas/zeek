@@ -11,13 +11,16 @@ event Storage::storage_connection_established%(%);
 # Generated when a backend connection is lost
 event Storage::storage_connection_lost%(%);
 
-function Storage::__open_backend%(btype: Storage::Backend, config: any%): opaque of Storage::BackendHandle
+function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type: any, val_type: any%): opaque of Storage::BackendHandle
 	%{
     auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{NewRef{}, btype->AsEnumVal()};
     zeek::Tag tag{btype_val};
 
+    auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+    auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+
     auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
-    auto b = storage_mgr->OpenBackend(tag, config_val);
+    auto b = storage_mgr->OpenBackend(tag, config_val, kt, vt);
 
     if ( ! b.has_value() ) {
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to open backend: %s", b.error().c_str()));
@@ -86,7 +89,7 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	return zeek::val_mgr->Bool(true);
 	%}
 
-function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, val_type: any, async_mode: bool &default=T%): any
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): any
 	%{
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -118,8 +121,7 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, va
 	}
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-    auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto result = b->backend->Get(key_v, vt, cb);
+	auto result = b->backend->Get(key_v, cb);
 
     if ( async_mode )
        return nullptr;

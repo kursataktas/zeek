@@ -40,10 +40,12 @@ public:
      * @param type The tag for the type of backend being opened.
      * @param config A record val representing the configuration for this
      * type of backend.
+     * @param key_type
+     * @param val_type
      * @return A pair containing a pointer to a backend and a string for
      * returning error messages if needed.
      */
-    BackendResult OpenBackend(const Tag& type, RecordValPtr configuration);
+    BackendResult OpenBackend(const Tag& type, RecordValPtr configuration, TypePtr key_type, TypePtr val_type);
 
     /**
      * Closes a storage backend.
@@ -58,10 +60,6 @@ protected:
 private:
     std::vector<BackendPtr> backends;
     std::mutex backends_mtx;
-
-    // TODO:
-    // - Hooks for storage-backed tables?
-    // - Handling aggregation from workers on a single manager?
 };
 
 } // namespace zeek::storage

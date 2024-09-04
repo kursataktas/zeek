@@ -87,13 +87,11 @@ public:
      * Retrieve a value from the backend for a provided key.
      *
      * @param key the key to lookup in the backend.
-     * @param value_type The script-land type to be used when retrieving values
-     * from the backend.
      * @return A result pair containing a ValPtr with the resulting value or
      * nullptr retrieval failed, and a string with the error message if the
      * operation failed.
      */
-    ValResult Get(ValPtr key, TypePtr value_type, ValResultCallback* cb = nullptr);
+    ValResult Get(ValPtr key, ValResultCallback* cb = nullptr);
 
     /**
      * Erases the value for a key from the backend.
@@ -116,10 +114,12 @@ protected:
      * Called by the manager system to open the backend.
      *
      * @param config A record type storing configuration options for the backend.
+     * @param kt
+     * @param vt
      * @return A result pair containing a bool with the success state, and a
      * possible error string if the operation failed.
      */
-    ErrorResult Open(RecordValPtr config);
+    ErrorResult Open(RecordValPtr config, TypePtr kt, TypePtr vt);
 
     /**
      * Finalizes the backend when it's being closed. Can be overridden by
@@ -141,7 +141,7 @@ protected:
     /**
      * The workhorse method for Get().
      */
-    virtual ValResult DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb = nullptr) = 0;
+    virtual ValResult DoGet(ValPtr key, ValResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Erase().
@@ -153,6 +153,10 @@ protected:
      * derived classes.
      */
     virtual void Expire() {}
+
+protected:
+    TypePtr key_type;
+    TypePtr val_type;
 
 private:
     bool native_async = false;

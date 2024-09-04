@@ -180,7 +180,7 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-ValResult SQLite::DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb) {
+ValResult SQLite::DoGet(ValPtr key, ValResultCallback* cb) {
     if ( ! db )
         return nonstd::unexpected<std::string>("Database was not open");
 
@@ -198,7 +198,7 @@ ValResult SQLite::DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb) {
     if ( errorcode == SQLITE_ROW ) {
         // Column 1 is the value
         const char* text = (const char*)sqlite3_column_text(stmt, 0);
-        auto val = zeek::detail::ValFromJSON(text, value_type, Func::nil);
+        auto val = zeek::detail::ValFromJSON(text, val_type, Func::nil);
         sqlite3_reset(stmt);
         if ( std::holds_alternative<ValPtr>(val) ) {
             ValPtr val_v = std::get<ValPtr>(val);

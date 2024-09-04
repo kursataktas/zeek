@@ -16,13 +16,17 @@ event zeek_init() {
 	opts$table_name = "testing";
 
 	# This should report an error in .stderr and reporter.log
-	local b = Storage::open_backend(Storage::SQLITE, opts);
+	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
-	# Open a valid database file and then close it
+	# Open a valid database file
 	opts$database_path = "test.sqlite";
-	b = Storage::open_backend(Storage::SQLITE, opts);
-	Storage::close_backend(b);
+	b = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
-	# Attempt to use closed handle
-	Storage::put(b, "a", "b", F);
+	local bad_key: count = 12345;
+	local value = "abcde";
+	Storage::put(b, bad_key, value, F, 0sec, F);
+
+	# Close the backend and then attempt to use the closed handle
+	Storage::close_backend(b);
+	Storage::put(b, "a", "b", F, 0sec, F);
 }

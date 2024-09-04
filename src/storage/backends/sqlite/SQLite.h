@@ -45,7 +45,7 @@ public:
     /**
      * The workhorse method for Get().
      */
-    ValResult DoGet(ValPtr key, TypePtr value_type, ValResultCallback* cb = nullptr) override;
+    ValResult DoGet(ValPtr key, ValResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Erase().

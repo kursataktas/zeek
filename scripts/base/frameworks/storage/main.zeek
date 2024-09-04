@@ -31,7 +31,8 @@ export {
 	## config: A record containing the configuration for the connection.
 	##
 	## Returns: A handle to the new backend connection.
-	global open_backend: function(btype: Storage::Backend, config: any): opaque of Storage::BackendHandle;
+	global open_backend: function(btype: Storage::Backend, config: any, key_type: any,
+	                              val_type: any): opaque of Storage::BackendHandle;
 
 	## Closes an existing backend connection.
 	##
@@ -69,8 +70,8 @@ export {
 	##
 	## Returns: A boolean indicating success or failure of the
 	## operation. Type conversion failures for the value will return false.
-	global get: function(backend: opaque of Storage::BackendHandle, key: any, val_type: any,
-			     async_call: bool &default=T): any;
+	global get: function(backend: opaque of Storage::BackendHandle, key: any,
+			     async_mode: bool &default=T): any;
 
 	## Erases an entry from the backend.
 	##
@@ -83,9 +84,9 @@ export {
 			       async_mode: bool &default=T): bool;
 }
 
-function open_backend(btype: Storage::Backend, config: any): opaque of Storage::BackendHandle
+function open_backend(btype: Storage::Backend, config: any, key_type: any, val_type: any): opaque of Storage::BackendHandle
 {
-	return Storage::__open_backend(btype, config);
+	return Storage::__open_backend(btype, config, key_type, val_type);
 }
 
 function close_backend(backend: opaque of Storage::BackendHandle): bool
@@ -99,9 +100,9 @@ function put(backend: opaque of Storage::BackendHandle, key: any, value: any, ov
 	return Storage::__put(backend, key, value, overwrite, expire_time, async_mode);
 }
 
-function get(backend: opaque of Storage::BackendHandle, key: any, val_type: any, async_call: bool &default=T): any
+function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): any
 {
-	return Storage::__get(backend, key, val_type, async_call);
+	return Storage::__get(backend, key, async_mode);
 }
 
 function erase(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): bool

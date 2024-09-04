@@ -59,13 +59,25 @@ void ValResultCallback::Timeout() {
     Unref(v);
 }
 
-ErrorResult Backend::Open(RecordValPtr config) { return DoOpen(std::move(config)); }
+ErrorResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt) {
+    key_type = std::move(kt);
+    val_type = std::move(vt);
+
+    return DoOpen(std::move(config));
+}
 
 ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
     // just calls the backend itself directly.
+    if ( ! same_type(key->GetType(), key_type) )
+        return util::fmt("type of key passed (%s) does not match backend's key type (%s)",
+                         key->GetType()->GetName().c_str(), key_type->GetName().c_str());
+    if ( ! same_type(value->GetType(), val_type) )
+        return util::fmt("type of value passed (%s) does not match backend's value type (%s)",
+                         value->GetType()->GetName().c_str(), val_type->GetName().c_str());
+
     auto res = DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);
 
     if ( ! native_async && cb )
@@ -74,9 +86,9 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
     return res;
 }
 
-ValResult Backend::Get(ValPtr key, TypePtr value_type, ValResultCallback* cb) {
+ValResult Backend::Get(ValPtr key, ValResultCallback* cb) {
     // See the note in Put().
-    auto res = DoGet(std::move(key), std::move(value_type), cb);
+    auto res = DoGet(std::move(key), cb);
 
     if ( ! native_async && cb )
         cb->Complete(res);
