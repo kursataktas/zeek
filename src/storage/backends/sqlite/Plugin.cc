@@ -13,7 +13,7 @@ public:
         AddComponent(new storage::Component("SQLITE", backends::sqlite::SQLite::Instantiate));
 
         plugin::Configuration config;
-        config.name = "Zeek::SQLiteStorage";
+        config.name = "Zeek::Storage_Backend_SQLite";
         config.description = "SQLite backend for storage framework";
         return config;
     }

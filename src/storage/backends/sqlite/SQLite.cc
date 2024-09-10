@@ -2,6 +2,7 @@
 
 #include "SQLite.h"
 
+#include "zeek/3rdparty/sqlite3.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 

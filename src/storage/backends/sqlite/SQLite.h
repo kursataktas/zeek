@@ -2,8 +2,11 @@
 
 #pragma once
 
-#include "zeek/3rdparty/sqlite3.h"
 #include "zeek/storage/Backend.h"
+
+// Forward declare these to avoid including sqlite3.h here
+struct sqlite3;
+struct sqlite3_stmt;
 
 namespace zeek::storage::backends::sqlite {
 
