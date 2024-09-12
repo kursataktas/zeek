@@ -24,6 +24,26 @@ export {
 		);
 	};
 
+	## Options record for the built-in Redis backend.
+	type RedisOptions: record {
+		# Address to the server
+		server_addr: string;
+
+		# Port for the server
+		server_port: port;
+
+		# Server unix socket file. This can be used instead of the
+		# address and port above to connect to a local server.
+		server_unix_socket: string;
+
+		# Prefix used in key values stored to differentiate varying
+		# types of data on the same server.
+		key_prefix: string;
+
+		# Amount of time to wait for operations to complete.
+		op_timeout: interval &default=5sec;
+	};
+
 	## Record for passing arguments to ``put``
 	type PutArgs: record {
 		backend: opaque of Storage::BackendHandle;
