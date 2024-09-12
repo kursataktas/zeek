@@ -24,6 +24,25 @@ export {
 		);
 	};
 
+	## Record for passing arguments to ``put``
+	type PutArgs: record {
+		backend: opaque of Storage::BackendHandle;
+		key: any;
+		value: any;
+
+		# Indicates whether this value should overwrite an existing entry
+		# for the key.
+		overwrite: bool &default=F;
+
+		# Indicates whether this operation should happen asynchronously. If this
+		# is true, the call to put must happen as part of a when statement.
+		async_mode: bool &default=T;
+
+		# An interval of time until the entry is automatically removed from the
+		# backend.
+		expire_time: interval &default=0sec;
+	};
+
 	## Opens a new backend connection based on a configuration object.
 	##
 	## btype: A tag indicating what type of backend should be opened.
@@ -43,22 +62,9 @@ export {
 
 	## Inserts a new entry into a backend.
 	##
-	## backend: A handle to a backend connection.
-	##
-	## key: A key value.
-	##
-	## value: A corresponding value.
-	##
-	## overwrite: A flag indicating whether this value should overwrite an existing entry
-	## for the key.
-	##
-	## expire_time: An interval of time until the entry is automatically
-	## removed from the backend.
 	##
 	## Returns: A boolean indicating success or failure of the operation.
-	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any,
-	                     overwrite: bool, expire_time: interval &default=0sec,
-			     async_mode: bool &default=T): bool;
+	global put: function(args: Storage::PutArgs): bool;
 
 	## Gets an entry from the backend.
 	##
@@ -94,10 +100,9 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 	return Storage::__close_backend(backend);
 }
 
-function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool,
-             expire_time: interval &default=0sec, async_mode: bool &default=T): bool
+function put(args: Storage::PutArgs): bool
 {
-	return Storage::__put(backend, key, value, overwrite, expire_time, async_mode);
+	return Storage::__put(args$backend, args$key, args$value, args$overwrite, args$expire_time, args$async_mode);
 }
 
 function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): any

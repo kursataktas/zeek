@@ -24,9 +24,9 @@ event zeek_init() {
 
 	local bad_key: count = 12345;
 	local value = "abcde";
-	Storage::put(b, bad_key, value, F, 0sec, F);
+	Storage::put([$backend=b, $key=bad_key, $value=value, $async_mode=F]);
 
 	# Close the backend and then attempt to use the closed handle
 	Storage::close_backend(b);
-	Storage::put(b, "a", "b", F, 0sec, F);
+	Storage::put([$backend=b, $key="a", $value="b"]);
 }
