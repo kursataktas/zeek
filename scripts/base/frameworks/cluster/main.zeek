@@ -18,6 +18,8 @@
 @load base/frameworks/control
 @load base/frameworks/broker
 
+@load base/bif/cluster.bif
+
 module Cluster;
 
 export {
@@ -281,6 +283,27 @@ export {
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string;
 
+	## Initialize the active cluster backend.
+	##
+	## This is usually invoked by a cluster backend's supporting
+	## scripts from :zeek:see:`zeek_init` handler.
+	global init: function(): bool;
+
+	## Subscribe to the given topic using the currently
+	## active cluster backend.
+	##
+	## topic: The topic to subscribe to.
+	##
+	## Returns: true on success
+	global subscribe: function(topic: string): bool;
+
+	## Unsubscribe from the given topic.
+	##
+	## topic: The topic to unsubscribe from.
+	##
+	## Returns: true on success
+	global unsubscribe: function(topic: string): bool;
+
 	## Untyped remote event.
 	type Event: record {
 		## The function to be invoked as an event on the remote side.
@@ -527,4 +550,19 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 function log(msg: string)
 	{
 	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	}
+
+function init(): bool
+	{
+	return Cluster::Backend::__init();
+	}
+
+function subscribe(topic: string): bool
+	{
+	return Cluster::__subscribe(topic);
+	}
+
+function unsubscribe(topic: string): bool
+	{
+	return __unsubscribe(topic);
 	}
