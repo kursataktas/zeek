@@ -39,6 +39,8 @@ void Component::Describe(ODesc* d) const {
 
         case component::SESSION_ADAPTER: d->Add("Session Adapter"); break;
 
+        case component::STORAGE_BACKEND: d->Add("Storage Backend"); break;
+
         default:
             reporter->InternalWarning("unknown component type in plugin::Component::Describe");
             d->Add("<unknown component type>");
