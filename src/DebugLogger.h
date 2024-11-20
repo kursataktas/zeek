@@ -54,6 +54,7 @@ enum DebugStream {
     DBG_SUPERVISOR,      // Process supervisor
     DBG_HASHKEY,         // HashKey buffers
     DBG_SPICY,           // Spicy functionality
+    DBG_STORAGE,         // Storage framework
 
     NUM_DBGS // Has to be last
 };
