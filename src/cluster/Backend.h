@@ -401,34 +401,38 @@ protected:
     /**
      * To be used by implementations to enqueue messages for processing on the IO loop.
      *
-     * It's safe to call this method from other threads.
+     * It's safe to call this method from any thread.
+     *
+     * @param messages Messages to be enqueued.
      */
-    void QueueForProcessing(QueueMessages&& qmessage);
+    void QueueForProcessing(QueueMessages&& messages);
 
     void Process() override;
 
     double GetNextTimeout() override { return -1; }
 
     /**
-     * The DoInit() implementation of ThreadedBackend
-     * registers itself as a counting IO source that
-     * keeps the IO loop alive.
-     *
-     * Classes deriving from ThreadedBackend should invoke
-     * this method at some point, or register themselves
-     * with the IO loop if needed.
-     */
-    bool DoInit() override;
-
-    /**
      * The DoInitPostScript() implementation of ThreadedBackend
      * registers itself as a non-counting IO source.
      *
-     * Classes deriving from ThreadedBackend should invoke
-     * this method at some point, or register themselves
-     * with the IO loop if needed.
+     * Classes deriving from ThreadedBackend and providing their
+     * own DoInitPostScript() method should invoke the ThreadedBackend's
+     * implementation to register themselves as a non-counting
+     * IO source with the IO loop.
      */
     void DoInitPostScript() override;
+
+    /**
+     * The default DoInit() implementation of ThreadedBackend
+     * registers itself as a counting IO source to keep the IO
+     * loop alive after initialization.
+     *
+     * Classes deriving from ThreadedBackend and providing their
+     * own DoInit() method should invoke the ThreadedBackend's
+     * implementation to register themselves as a counting
+     * IO source with the IO loop.
+     */
+    bool DoInit() override;
 
 private:
     /**
