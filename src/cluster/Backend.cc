@@ -78,7 +78,7 @@ zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
     static const auto& event_record_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");
     auto rec = zeek::make_intrusive<zeek::RecordVal>(event_record_type);
 
-    if ( args.size() < 1 ) {
+    if ( args.empty() ) {
         zeek::reporter->Error("not enough arguments to Cluster::make_event()");
         return rec;
     }

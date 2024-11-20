@@ -91,22 +91,22 @@ public:
     void Terminate() { DoTerminate(); }
 
     /**
-     * Create a cluster::detail::Event instance given a event handler and the
+     * Create a cluster::detail::Event instance given an event handler and the
      * script function arguments to it.
      *
-     * @param handler
-     * @param args
-     * @param timestamp
+     * @param handler A function val representing an event handler.
+     * @param args The arguments for the event handler.
+     * @param timestamp The network time to add to the event as metadata.
      */
     std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.
      *
-     * @param topic
-     * @param event
+     * @param topic The topic string to publish the event to.
+     * @param event The event to publish.
      *
-     * @return true if the message was sent successfully.
+     * @return true if the event was successfully published.
      */
     bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
         return DoPublishEvent(topic, event);
@@ -157,16 +157,13 @@ public:
     bool Unsubscribe(const std::string& topic_prefix) { return DoUnsubscribe(topic_prefix); }
 
     /**
-     * Publish multiple log writes.
+     * Publish multiple log records.
      *
-     * All log records belong to (the stream, filter, path) pair that is
+     * All log records belong to the (stream, filter, path) tuple that is
      * described by \a header.
      *
-     * @param header fixed information about the stream, writer, filter and the
-     * schema.
-     * @param path Separate from the header. One header may log to multiple paths,
-     * but the header fields are constant.
-     * @param records A span of logging::detail::LogRecords
+     * @param header Fixed information about the stream, writer, filter and schema of the records.
+     * @param records A span of logging::detail::LogRecords to be published.
      */
     bool PublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
                           zeek::Span<zeek::logging::detail::LogRecord> records) {
@@ -196,7 +193,7 @@ private:
      * Called after all Zeek scripts have been loaded.
      *
      * A cluster backend should initialize itself based on script variables,
-     * register any IO sources. It should not yet start any connections, that
+     * register any IO sources, etc. It should not yet start any connections, that
      * should happen in DoInit() instead.
      */
     virtual void DoInitPostScript() = 0;
@@ -228,7 +225,8 @@ private:
      * but may be overridden by implementations.
      *
      * Note that this method exists primarily for the broker backend. Do not
-     * implement it unless you have a good reason to do so.
+     * implement it unless you have a good reason to do so as it'll most likely
+     * be removed in future versions.
      *
      * @param args FuncVal representing the event followed by its argument.
      *
@@ -243,7 +241,8 @@ private:
      * converts it to a cluster::detail::Event and publishes that.
 
      * Note that this method exists primarily for the broker backend. Do not
-     * implement it unless you have a good reason to do so.
+     * implement it unless you have a good reason to do so as it'll most likely
+     * be removed in future versions.
      *
      * @param topic a topic string associated with the message.
      * @param event an event RecordVal as produced by MakeEvent().
